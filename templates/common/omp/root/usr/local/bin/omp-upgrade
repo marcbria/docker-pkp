@@ -1,0 +1,18 @@
+#!/bin/sh
+
+echo "[OMP Upgrade] Changing to installed off"
+
+#Workarround, to avoid issues if config is a volume:
+cp ${OMP_CONF} /tmp/config.inc.php
+sed -i '/^installed/c\installed = Off' /tmp/config.inc.php
+cp -f /tmp/config.inc.php ${OMP_CONF}
+
+echo "[OMP Upgrade] Upgrading..."
+php /var/www/html/tools/upgrade.php upgrade
+
+echo "[OMP Upgrade] Changing to installed on"
+cp ${OMP_CONF} /tmp/config.inc.php
+sed -i '/^installed/c\installed = On' ${OMP_CONF}
+cp -f /tmp/config.inc.php ${OMP_CONF}
+
+echo "[OMP Upgrade] Upgrade is done, please restart the container."

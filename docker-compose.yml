@@ -1,0 +1,55 @@
+# File: docker-compose.yml
+# Author: Marc Bria UAB (marc.bria@uab.es)
+version: "3.7"
+
+services:
+  db:
+    image: mariadb:10.2
+    env_file:
+      - .env
+    container_name: "pkp_db_${COMPOSE_PROJECT_NAME:-demo}"
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-ojsPwd}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-ojs}"
+      MYSQL_USER: "${MYSQL_USER:-ojs}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD:-ojsPwd}"
+#    volumes:
+#      - ./volumes/db:/var/lib/mysql
+#      - ./volumes/logs/db:/var/log/mysql
+#      - ./volumes/config/db.charset.conf:/etc/mysql/conf.d/charset.cnf
+#      - ./volumes/migration:/docker-entrypoint-initdb.d
+    networks:
+      - inside
+    restart: always
+
+  app:
+#    image: local/ojs:3_3_0-11
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    container_name: "pkp_app_${COMPOSE_PROJECT_NAME:-demo}"
+    hostname: "${COMPOSE_PROJECT_NAME:-demo}"
+    ports:
+      - "${HTTP_PORT:-8081}:80"
+      - "${HTTPS_PORT:-443}:443"
+#    volumes:
+#      - /etc/localtime:/etc/localtime
+#      - ./volumes/private:/var/www/files
+#      - ./volumes/public:/var/www/html/public
+#      - ./volumes/logs/app:/var/log/apache2
+#      # WARNING: You can only enable file-volumes if file exists in the container.
+#      - ./volumes/config/ojs.config.inc.php:/var/www/html/config.inc.php
+#      - ./volumes/config/apache.htaccess:/var/www/html/.htaccess
+#      - ./volumes/php.custom.ini:/usr/local/etc/php/conf.d/custom.ini
+
+    networks:
+      - inside
+    depends_on:
+      - db
+    restart: always
+
+networks:
+  inside:
+    external: false

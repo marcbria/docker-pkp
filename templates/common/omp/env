@@ -1,0 +1,30 @@
+# Set your journal Tag:
+COMPOSE_PROJECT_NAME=journal
+PROJECT_DOMAIN=journal.localhost
+SERVERNAME=$PROJECT_DOMAIN
+
+# Web Server:
+PHP_INI_DIR="/etc/php/8.0" 
+HTTP_PORT=8081
+HTTPS_PORT=8444
+HTTPS="on"
+WEB_PATH="/var/www/html"
+
+# Database:
+# MYSQL_VERSION=10.3
+MYSQL_ROOT_PASSWORD=root
+MYSQL_USER=omp
+MYSQL_PASSWORD=ompPwd
+MYSQL_DATABASE=omp
+
+# PKP Tool:
+PKP_TOOL="omp"
+PKP_VERSION="3.3.0-11"
+OMP_CLI_INSTALL=0
+OMP_DB_HOST=db
+OMP_DB_DRIVER=mysqli
+OMP_DB_USER="$PKP_TOOL" 
+OMP_DB_PASSWORD=changeMePlease
+OMP_DB_NAME="$PKP_TOOL"
+OMP_WEB_CONF="/etc/apache2/conf.d/$PKP_TOOL.conf"
+OMP_CONF="/var/www/html/config.inc.php"

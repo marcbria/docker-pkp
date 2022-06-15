@@ -1,0 +1,43 @@
+#!/bin/sh
+
+WEB_ROOT_PATH="/var/www"
+PATCH_LIST_FILE="${WEB_ROOT_PATH}/files/patch.list"
+
+# Gets the commit from the url, takes it as a patch and applies is the ojs root folder.
+# $1: The full url of a gitHub/gitLab commit.
+applyPatch() {
+    cd "${WEB_ROOT_PATH}/html"
+    echo "  Patching from: ${1}"
+    wget ${1}.patch -O tmp.patch
+    patch -p1 < tmp.patch
+    rm tmp.patch
+    return
+}
+
+main() {
+    echo "[OJS Patch] Apply a patch to your OJS..."
+    
+    if [ ${1} ]; then
+        echo "Patching a single commit."
+        applyPatch ${1}
+        echo "[OJS Patch] DONE!"
+    else
+        if [ -f "${PATCH_LIST_FILE}" ]; then
+    
+            echo "Patching with a list of commits from a file list."
+            echo "(List found at: $PATCH_LIST_FILE)"
+   
+            # As far as we won't have bash: old fashion while. 
+            while read patchItem
+            do
+                applyPatch $patchItem
+            done < $PATCH_LIST_FILE
+    
+            echo "[OJS Patch] DONE!"
+        else 
+    	echo "No parameters and no patch.list file found."
+        fi
+    fi
+}
+
+main $@
