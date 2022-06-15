@@ -13,11 +13,15 @@ New approach includes:
 
 # ToDo
 - [ ] gitHub Actions to build images based on commits.
+- [ ] Monitor security with snyk service (or trivy).
 - [ ] Dockerfile and docker-compose created from templates.
+- [ ] Build and publish images for all versions.
+- [ ] Create a DEV image built from git repos.
 - [ ] gitHub Actions to autopush to DockerHub.
 - [ ] Move from debian to debian-slim.
 - [ ] Add and test "OPS" images.
 - [ ] Add docker-ojs feature requests (see issues).
+- [ ] Extend image with DEV tools.
 
 # Howto
 
