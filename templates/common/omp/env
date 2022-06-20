@@ -12,9 +12,9 @@ WEB_PATH="/var/www/html"
 
 # Database:
 # MYSQL_VERSION=10.3
-MYSQL_ROOT_PASSWORD=root
+MYSQL_ROOT_PASSWORD=changeRootPlease
 MYSQL_USER=omp
-MYSQL_PASSWORD=ompPwd
+MYSQL_PASSWORD=changeMePlease
 MYSQL_DATABASE=omp
 
 # PKP Tool:

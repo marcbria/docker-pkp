@@ -10,15 +10,21 @@ ojs-pre-start
 
 # Run the apache process in the foreground with the wrapper provided by the php-apache image.
 /usr/local/bin/apache2-foreground
-echo "----------> [OJS Start] Started apache..."
+echo "--> [OJS Start] Started apache..."
 
 # Apache logs will be redirected to the main docker container process's stdout, so # that it will show up in the container logs
-ln -sf /dev/stdout /var/log/apache2/access.log \
-    && ln -sf /dev/stderr /var/log/apache2/error.log
+##### ln -sf /dev/stderr /var/log/apache2/error.log
+
+# # If you like to redirect access & errors, uncomment the following:
+# ln -sf /dev/stdout /var/log/apache2/access.log \
+#     && ln -sf /dev/stderr /var/log/apache2/error.log
 
 # ... And same redirections apply for SSL logs:
-ln -sf /dev/stdout /var/log/apache2/ssl_access.log \
-    && ln -sf /dev/stderr /var/log/apache2/ssl_error.log
+##### ln -sf /dev/stderr /var/log/apache2/ssl_error.log
+
+# # If you like to redirect access & errors, uncomment the following:
+# ln -sf /dev/stdout /var/log/apache2/ssl_access.log \
+#     && ln -sf /dev/stderr /var/log/apache2/ssl_error.log
 
 if [ "${OJS_CLI_INSTALL}" = "1" ] &&
     grep -q 'installed = Off' "${OJS_CONF}" ; then

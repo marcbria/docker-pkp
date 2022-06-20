@@ -5,9 +5,30 @@ PEM_PATH="/etc/ssl/apache2/server.pem"
 
 echo "[OMP Pre-Start] Enforcing configs..."
 
+echo "================= ENV VARIABLES =================="
+echo "SERVERNAME:      [${SERVERNAME}]"
+echo "OMP_CONF:        [${OMP_CONF}]"
+echo "OMP_WEB_CONF:    [${OMP_WEB_CONF}]"
+echo "OMP_WEB_CONF:    [${OMP_WEB_CONF}]"
+echo "OMP_CLI_INSTALL: [${OMP_CLI_INSTALL}]"
+echo "=================================================="
+
+
+# Just in case somebody likes to change the document root:
+# sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+# sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+
+echo "sed -i -e \"s/www.example.com/${SERVERNAME}/g\" $OMP_WEB_CONF"
 sed -i -e "s/www.example.com/${SERVERNAME}/g" $OMP_WEB_CONF
-sed -i -e "s/^#ServerName.*/ServerName ${SERVERNAME}/" /etc/apache2/apache2.conf
+
+echo "sed -i -e \"s/^#ServerName.*/ServerName ${SERVERNAME}/g\" /etc/apache2/apache2.conf"
+sed -i -e "s/^#ServerName.*/ServerName ${SERVERNAME}/g" /etc/apache2/apache2.conf
+
+echo "sed -i -e \"s/restful_urls = Off/restful_urls = On/g\" $OMP_CONF"
 sed -i -e "s/restful_urls = Off/restful_urls = On/g" $OMP_CONF
+
+echo "sed -i -e \"s/enable_cdn = On/enable_cdn = Off/g\" $OMP_CONF"
 sed -i -e "s/enable_cdn = On/enable_cdn = Off/g" $OMP_CONF
 
 # Generate a cert based on ServerName

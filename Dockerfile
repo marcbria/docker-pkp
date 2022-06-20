@@ -36,6 +36,14 @@ RUN echo    "==============================================================="   
 # GET & SET THE LAMP
 FROM php:8.0-apache
 
+# TODO:
+# - Concatenate calls to reduce the layers
+# - Replace with PKP_variables when possible
+# - Remove "vim" in production image
+# - Ensure all required packages and php extensions
+# - Test with OJS, OMP and OPS.
+# - Redirect log output to stdout & FILE.
+
 # Context
 ARG BUILD_PKP_TOOL                              \
     BUILD_PKP_VERSION                           \
@@ -76,10 +84,13 @@ ENV PACKAGES        \
     libonig-dev     \
     libpng-dev      \
     libxslt-dev     \
-    libzip-dev
+    libzip-dev      \
+    vim
+
 
 # PHP extensions
 ENV PHP_EXTENSIONS  \
+    gettext \
     mbstring \
     pdo_mysql \
     mysqli \
@@ -136,13 +147,16 @@ RUN docker-php-ext-install -j$(nproc) ${PHP_EXTENSIONS}
 
 RUN docker-php-ext-enable ${PHP_EXTENSIONS}
 
+# Enable mod_rewrite and mod_ssl
+RUN a2enmod rewrite ssl
+
 # Building PKP-TOOL (ie: OJS):
 
 # Get the code
 COPY --from=pkp_code "${BUILD_PKP_APP_PATH}" .
 
 # Create directories
-RUN mkdir -p "${WWW_PATH_ROOT}/files" /run/apache2
+RUN mkdir -p /etc/ssl/apache2 "${WWW_PATH_ROOT}/files" /run/apache2
 RUN echo "PKP_CONF: ${PKP_CONF}"
 RUN cp -a config.TEMPLATE.inc.php "${WWW_PATH_ROOT}/html/${PKP_CONF}" 
 RUN chown -R ${WWW_USER}:${WWW_USER} "${WWW_PATH_ROOT}"

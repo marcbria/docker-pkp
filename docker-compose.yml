@@ -9,10 +9,10 @@ services:
       - .env
     container_name: "pkp_db_${COMPOSE_PROJECT_NAME:-demo}"
     environment:
-      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-ojsPwd}"
-      MYSQL_DATABASE: "${MYSQL_DATABASE:-ojs}"
-      MYSQL_USER: "${MYSQL_USER:-ojs}"
-      MYSQL_PASSWORD: "${MYSQL_PASSWORD:-ojsPwd}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-pkpPwd}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-pkp}"
+      MYSQL_USER: "${MYSQL_USER:-pkp}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD:-pkpPwd}"
 #    volumes:
 #      - ./volumes/db:/var/lib/mysql
 #      - ./volumes/logs/db:/var/log/mysql
@@ -23,7 +23,7 @@ services:
     restart: always
 
   app:
-#    image: local/ojs:3_3_0-11
+    image: local/${PKP_TOOL}:3_3_0-11
     build: 
       context: .
       dockerfile: Dockerfile

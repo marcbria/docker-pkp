@@ -1,14 +1,14 @@
 #!/bin/sh
 
-echo "[OJS Variables] Set variable value in config.inc.php"
+echo "[OMP Variables] Set variable value in config.inc.php"
 echo "     Variable:    [${1}]"
 echo "     New value:   [${2}]"
-echo "     config file: ${OJS_CONF}"
+echo "     config file: ${OMP_CONF}"
 
 #Workarround, to avoid issues when config is a volume:
-cp ${OJS_CONF} /tmp/config.inc.php
-sed -i -e "s/^${1} =.*/${1} = ${2}/" /tmp/ojs.config.inc.php
+cp ${OMP_CONF} /tmp/config.inc.php
+sed -i -e "s/^${1} =.*/${1} = ${2}/" /tmp/omp.config.inc.php
 sed -i '/^installed/c\installed = Off' /tmp/config.inc.php
-cp -f /tmp/config.inc.php ${OJS_CONF}
+cp -f /tmp/config.inc.php ${OMP_CONF}
 
-echo "[OJS Variable] Variable set."
+echo "[OMP Variable] Variable set."
