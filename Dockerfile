@@ -57,8 +57,8 @@ LABEL org.opencontainers.image.description="Runs a ${BUILD_PKP_TOOL} application
 LABEL build_version="Docker for ${BUILD_PKP_TOOL} ${BUILD_PKP_VERSION} - Build-date: ${BUILD_LABEL}"
 
 # ARGs only work during building time, so they need to be exported to ENVs:
-ENV PKP_TOOL="${BUILD_PKP_TOOL:ojs}"                        \
-    PKP_VERSION="${BUILD_PKP_VERSION:3.3.0-1}"              \
+ENV PKP_TOOL="${BUILD_PKP_TOOL:-ojs}"                       \
+    PKP_VERSION="${BUILD_PKP_VERSION:-3.3.0-1}"             \
     SERVERNAME="localhost"                                  \
     WWW_USER="www-data"                                     \
     WWW_PATH_CONF="/etc/apache2/apache2.conf"               \
@@ -66,12 +66,12 @@ ENV PKP_TOOL="${BUILD_PKP_TOOL:ojs}"                        \
     HTTPS="on"                                              \
     PKP_CLI_INSTALL="0"                                     \
     PKP_DB_HOST="localhost"                                 \
-    PKP_DB_USER="$BUILD_PKP_TOOL"                           \
-    PKP_DB_PASSWORD="${MYSQL_PASSWORD}"                     \
-    PKP_DB_NAME="$BUILD_PKP_TOOL"                           \
+    PKP_DB_USER="${MYSQL_USER:-ojs}"                        \
+    PKP_DB_PASSWORD="${MYSQL_PASSWORD:-changeMe}"           \
+    PKP_DB_NAME="${MYSQL_DATABASE:-ojs}"                    \
     PKP_WEB_CONF="/etc/apache2/conf.d/$BUILD_PKP_TOOL.conf" \
     PKP_CONF="config.inc.php"                               \
-    PKP_CMD="/usr/local/bin/${BUILD_PKP_TOOL}-start"
+    PKP_CMD="/usr/local/bin/${BUILD_PKP_TOOL:-ojs}-start"
 
 
 # Basic packages (todo: Remove what don't need to be installed)
