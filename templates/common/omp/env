@@ -1,6 +1,6 @@
 # Set your journal Tag:
-COMPOSE_PROJECT_NAME=journal
-PROJECT_DOMAIN=journal.localhost
+COMPOSE_PROJECT_NAME=books
+PROJECT_DOMAIN=books.localhost
 SERVERNAME=$PROJECT_DOMAIN
 
 # Web Server:
@@ -19,7 +19,7 @@ MYSQL_DATABASE=omp
 
 # PKP Tool:
 PKP_TOOL="omp"
-PKP_VERSION="3.3.0-11"
+PKP_VERSION="3.3.0-13"
 OMP_CLI_INSTALL=0
 OMP_DB_HOST=db
 OMP_DB_DRIVER=mysqli

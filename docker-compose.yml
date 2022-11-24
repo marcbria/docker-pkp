@@ -1,6 +1,5 @@
 # File: docker-compose.yml
 # Author: Marc Bria UAB (marc.bria@uab.es)
-version: "3.7"
 
 services:
   db:
@@ -23,7 +22,7 @@ services:
     restart: always
 
   app:
-    image: local/${PKP_TOOL}:3_3_0-11
+    image: local/${PKP_TOOL}:3_3_0-13
     build: 
       context: .
       dockerfile: Dockerfile
