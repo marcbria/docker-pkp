@@ -97,7 +97,6 @@ ENV PHP_EXTENSIONS  \
     gettext \
     iconv \
     mbstring \
-    mycrypt \
     mysqli \
     pdo_mysql \
     xml \
