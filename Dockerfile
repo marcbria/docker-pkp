@@ -1,13 +1,13 @@
 # Default context
 ARG BUILD_PKP_TOOL=ojs              \
-    BUILD_PKP_VERSION=3.3.0-11      \
+    BUILD_PKP_VERSION=3.3.0-13      \
     BUILD_PKP_APP_PATH=/app         \
     BUILD_LABEL=notset
 
 
 
 # GET THE CODE
-FROM alpine:3.15 as pkp_code
+FROM alpine:3.17 as pkp_code
 
 # Context
 ARG BUILD_PKP_TOOL                  \
@@ -86,6 +86,7 @@ ENV PACKAGES        \
 # DEV packages are not required in production images.
 ENV PACKAGES_DEV    \
     zlib1g-dev      \
+    libmcrypt-dev   \
     libonig-dev     \
     libpng-dev      \
     libxslt-dev     \
@@ -95,9 +96,11 @@ ENV PACKAGES_DEV    \
 ENV PHP_EXTENSIONS  \
     gd \
     gettext \
+    iconv \
     mbstring \
-    pdo_mysql \
+    mycrypt \
     mysqli \
+    pdo_mysql \
     xml \
     xsl \
     zip
@@ -148,6 +151,10 @@ RUN docker-php-ext-install -j$(nproc) ${PHP_EXTENSIONS}
 
 # RUN pecl channel-update pecl.php.net && \
 #     pecl install ${PHP_EXTENSIONS}
+
+# GD need to be configured before installed
+RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ 
+&& docker-php-ext-install -j$(nproc) gd
 
 RUN docker-php-ext-enable ${PHP_EXTENSIONS}
 
