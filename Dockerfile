@@ -80,16 +80,20 @@ ENV PACKAGES        \
     rsyslog         \
     apache2-utils   \
     ca-certificates \
+    libpng          \
+    vim
+
+# DEV packages are not required in production images.
+ENV PACKAGES_DEV    \
     zlib1g-dev      \
     libonig-dev     \
     libpng-dev      \
     libxslt-dev     \
-    libzip-dev      \
-    vim
-
+    libzip-dev
 
 # PHP extensions
 ENV PHP_EXTENSIONS  \
+    gd \
     gettext \
     mbstring \
     pdo_mysql \
@@ -137,7 +141,7 @@ ENV PHP_EXTENSIONS  \
 WORKDIR ${WWW_PATH_ROOT}/html
 
 # For Debian:
-RUN apt-get update && apt-get install -y ${PACKAGES}
+RUN apt-get update && apt-get install -y ${PACKAGES} ${PACKAGES_DEV}
 #	&& docker-php-ext-configure $PHP_CONFIGURE \
 
 RUN docker-php-ext-install -j$(nproc) ${PHP_EXTENSIONS}
