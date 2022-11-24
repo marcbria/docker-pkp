@@ -96,12 +96,17 @@ ENV PHP_EXTENSIONS  \
     gd \
     gettext \
     iconv \
+    intl \
     mbstring \
     mysqli \
     pdo_mysql \
     xml \
     xsl \
     zip
+
+# Possible values are:
+# bcmath bz2 calendar ctype curl dba dom enchant exif ffi fileinfo filter ftp gd gettext gmp hash iconv imap intl json ldap mbstring mysqli oci8 odbc opcache pcntl pdo pdo_dblib pdo_firebird pdo_mysql pdo_oci pdo_odbc pdo_pgsql pdo_sqlite pgsql phar posix pspell readline reflection session shmop simplexml snmp soap sockets sodium spl standard sysvmsg sysvsem sysvshm tidy tokenizer xml xmlreader xmlwriter xsl zend_test zip
+
 
 # ENV PHP_EXTENSIONS  \
 # 	php8-bcmath     \
@@ -149,10 +154,6 @@ RUN docker-php-ext-install -j$(nproc) ${PHP_EXTENSIONS}
 
 # RUN pecl channel-update pecl.php.net && \
 #     pecl install ${PHP_EXTENSIONS}
-
-# GD need to be configured before installed
-RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
-&& docker-php-ext-install -j$(nproc) gd
 
 RUN docker-php-ext-enable ${PHP_EXTENSIONS}
 
