@@ -57,8 +57,8 @@ LABEL org.opencontainers.image.description="Runs a ${BUILD_PKP_TOOL} application
 LABEL build_version="Docker for ${BUILD_PKP_TOOL} ${BUILD_PKP_VERSION} - Build-date: ${BUILD_LABEL}"
 
 # ARGs only work during building time, so they need to be exported to ENVs:
-ENV PKP_TOOL="${BUILD_PKP_TOOL}"                            \
-    PKP_VERSION="${BUILD_PKP_VERSION}"                      \
+ENV PKP_TOOL="${BUILD_PKP_TOOL:ojs}"                        \
+    PKP_VERSION="${BUILD_PKP_VERSION:3.3.0-1}"              \
     SERVERNAME="localhost"                                  \
     WWW_USER="www-data"                                     \
     WWW_PATH_CONF="/etc/apache2/apache2.conf"               \
@@ -67,9 +67,9 @@ ENV PKP_TOOL="${BUILD_PKP_TOOL}"                            \
     PKP_CLI_INSTALL="0"                                     \
     PKP_DB_HOST="localhost"                                 \
     PKP_DB_USER="$BUILD_PKP_TOOL"                           \
-    PKP_DB_PASSWORD="changeMe"                              \
+    PKP_DB_PASSWORD="${MYSQL_PASSWORD}"                     \
     PKP_DB_NAME="$BUILD_PKP_TOOL"                           \
-    PKP_WEB_CONF="/etc/apache2/conf.d/$BUILD_PKP_TOOL.conf"	\
+    PKP_WEB_CONF="/etc/apache2/conf.d/$BUILD_PKP_TOOL.conf" \
     PKP_CONF="config.inc.php"                               \
     PKP_CMD="/usr/local/bin/${BUILD_PKP_TOOL}-start"
 
@@ -80,7 +80,6 @@ ENV PACKAGES        \
     rsyslog         \
     apache2-utils   \
     ca-certificates \
-    libpng          \
     vim
 
 # DEV packages are not required in production images.
