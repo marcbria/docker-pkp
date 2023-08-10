@@ -1,9 +1,8 @@
 # Default context
 ARG BUILD_PKP_TOOL=ojs              \
-    BUILD_PKP_VERSION=3.3.0-13      \
+    BUILD_PKP_VERSION=3.3.0-15      \
     BUILD_PKP_APP_PATH=/app         \
     BUILD_LABEL=notset
-
 
 
 # GET THE CODE
