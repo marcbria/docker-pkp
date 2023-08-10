@@ -1,6 +1,6 @@
 # PKP Tool:
 PKP_TOOL="ojs"
-PKP_VERSION="3.3.0-13"
+PKP_VERSION="3.3.0-15"
 
 # Set your journal Tag:
 COMPOSE_PROJECT_NAME=demo
