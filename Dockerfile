@@ -6,7 +6,7 @@ ARG BUILD_PKP_TOOL=ojs              \
 
 
 # GET THE CODE
-FROM alpine:3.17 as pkp_code
+FROM alpine:3.18 as pkp_code
 
 # Context
 ARG BUILD_PKP_TOOL                  \
@@ -33,7 +33,7 @@ RUN echo    "==============================================================="   
 
 
 # GET & SET THE LAMP
-FROM php:8.0-apache
+FROM php:8.2-apache
 
 # TODO:
 # - Concatenate calls to reduce the layers
