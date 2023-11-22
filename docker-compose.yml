@@ -22,7 +22,7 @@ services:
     restart: always
 
   app:
-    image: local/${PKP_TOOL}:3_3_0-15
+    image: local/${PKP_TOOL}:3_3_0-16
     build: 
       context: .
       dockerfile: Dockerfile

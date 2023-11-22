@@ -1,6 +1,6 @@
 # Default context
-ARG BUILD_PKP_TOOL=ojs              \
-    BUILD_PKP_VERSION=3.3.0-15      \
+ARG BUILD_PKP_TOOL=omp              \
+    BUILD_PKP_VERSION=3.3.0-16      \
     BUILD_PKP_APP_PATH=/app         \
     BUILD_LABEL=notset
 
@@ -57,7 +57,7 @@ LABEL build_version="Docker for ${BUILD_PKP_TOOL} ${BUILD_PKP_VERSION} - Build-d
 
 # ARGs only work during building time, so they need to be exported to ENVs:
 ENV PKP_TOOL="${BUILD_PKP_TOOL:-ojs}"                       \
-    PKP_VERSION="${BUILD_PKP_VERSION:-3.3.0-1}"             \
+    PKP_VERSION="${BUILD_PKP_VERSION:-3.3.0-16}"            \
     SERVERNAME="localhost"                                  \
     WWW_USER="www-data"                                     \
     WWW_PATH_CONF="/etc/apache2/apache2.conf"               \
