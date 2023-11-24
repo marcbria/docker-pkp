@@ -2,11 +2,16 @@
 ARG BUILD_PKP_TOOL=omp              \
     BUILD_PKP_VERSION=3.3.0-16      \
     BUILD_PKP_APP_PATH=/app         \
+    BUILD_WEB_SERVER=php:8.1-apache \
+    BUILD_OS=alpine:3.18-stable     \
     BUILD_LABEL=notset
 
+    && echo " ---> Version:         ${BUILD_PKP_VERSION}"                       \
+    && echo " ---> Web server:      ${BUILD_WEB_SERVER}"                        \
+    && echo "==============================================================="
 
-# GET THE CODE
-FROM alpine:3.18 as pkp_code
+# GET PKP CODE
+FROM ${BUILD_OS} as pkp_code
 
 # Context
 ARG BUILD_PKP_TOOL                  \
@@ -31,9 +36,12 @@ RUN echo    "==============================================================="   
     && echo "==============================================================="
 
 
-
 # GET & SET THE LAMP
-FROM php:8.2-apache
+FROM ${BUILD_WEB_SERVER}
+
+RUN echo    "==============================================================="   \
+    && echo " ---> Web server:      ${BUILD_WEB_SERVER} (over debian)"          \
+    && echo "==============================================================="
 
 # TODO:
 # - Concatenate calls to reduce the layers
@@ -49,7 +57,7 @@ ARG BUILD_PKP_TOOL                              \
     BUILD_LABEL                                 \
     BUILD_PKP_APP_PATH
 
-LABEL maintainer="Public Knowledge Project <marc.bria@gmail.com>"
+LABEL maintainer="Public Knowledge Project <marc.bria@uab.es>"
 LABEL org.opencontainers.image.vendor="Public Knowledge Project"
 LABEL org.opencontainers.image.title="PKP ${BUILD_PKP_TOOL} Web Application"
 LABEL org.opencontainers.image.description="Runs a ${BUILD_PKP_TOOL} application over Apache"
@@ -103,57 +111,22 @@ ENV PHP_EXTENSIONS  \
     xsl \
     zip
 
-# Possible values are:
+# Extension names as required by docker-php-ext-* helpers. Possible values are:
 # bcmath bz2 calendar ctype curl dba dom enchant exif ffi fileinfo filter ftp gd gettext gmp hash iconv imap intl json ldap mbstring mysqli oci8 odbc opcache pcntl pdo pdo_dblib pdo_firebird pdo_mysql pdo_oci pdo_odbc pdo_pgsql pdo_sqlite pgsql phar posix pspell readline reflection session shmop simplexml snmp soap sockets sodium spl standard sysvmsg sysvsem sysvshm tidy tokenizer xml xmlreader xmlwriter xsl zend_test zip
-
-
-# ENV PHP_EXTENSIONS  \
-# 	php8-bcmath     \
-# 	php8-bz2        \
-# 	php8-calendar   \
-# 	php8-ctype      \
-# 	php8-curl       \
-# 	php8-dom        \
-# 	php8-exif       \
-# 	php8-fileinfo   \
-# 	php8-ftp        \
-# 	php8-gettext    \
-# 	php8-intl       \
-# 	php8-iconv      \
-# 	php8-json       \
-# 	php8-mbstring   \
-# 	php8-mysqli     \
-# 	php8-opcache    \
-# 	php8-openssl    \
-# 	php8-pdo_mysql  \
-# 	php8-phar       \
-# 	php8-posix      \
-# 	php8-session    \
-# 	php8-shmop      \
-# 	php8-simplexml  \
-# 	php8-sockets    \
-# 	php8-sysvmsg    \
-# 	php8-sysvsem    \
-# 	php8-sysvshm    \
-# 	php8-tokenizer  \
-# 	php8-xml        \
-# 	php8-xmlreader  \
-# 	php8-xmlwriter  \
-# 	php8-zip        \
-# 	php8-zlib
 
 
 WORKDIR ${WWW_PATH_ROOT}/html
 
 # For Debian:
 RUN apt-get update && apt-get install -y ${PACKAGES} ${PACKAGES_DEV}
-#	&& docker-php-ext-configure $PHP_CONFIGURE \
 
+# By default GD don't include jpeg and freetype support:
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+
+# Installing PHP extensions:
 RUN docker-php-ext-install -j$(nproc) ${PHP_EXTENSIONS}
 
-# RUN pecl channel-update pecl.php.net && \
-#     pecl install ${PHP_EXTENSIONS}
-
+# Enable installed extensions:
 RUN docker-php-ext-enable ${PHP_EXTENSIONS}
 
 # Enable mod_rewrite and mod_ssl
@@ -171,12 +144,13 @@ RUN cp -a config.TEMPLATE.inc.php "${WWW_PATH_ROOT}/html/${PKP_CONF}"
 RUN chown -R ${WWW_USER}:${WWW_USER} "${WWW_PATH_ROOT}"
 # Prepare freefont for captcha 
 #	&& ln -s /usr/share/fonts/TTF/FreeSerif.ttf /usr/share/fonts/FreeSerif.ttf \
+
 # Prepare crontab
 RUN echo "0 * * * *   pkp-run-scheduled" | crontab - 
 # Prepare httpd.conf
 RUN sed -i -e '\#<Directory />#,\#</Directory>#d' ${WWW_PATH_CONF} 
 RUN sed -i -e "s/^ServerSignature.*/ServerSignature Off/" ${WWW_PATH_CONF} 
-# Clear the image (list of files to be deleted in exclude.list).
+# Clear the image (files to be deleted were in exclude.list but this is not required with multi-build).
 RUN rm -rf /tmp/* 
 RUN rm -rf /root/.cache/* \
 RUN apt-get clean autoclean \
