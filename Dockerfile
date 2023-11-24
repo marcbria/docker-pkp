@@ -3,12 +3,8 @@ ARG BUILD_PKP_TOOL=omp              \
     BUILD_PKP_VERSION=3.3.0-16      \
     BUILD_PKP_APP_PATH=/app         \
     BUILD_WEB_SERVER=php:8.1-apache \
-    BUILD_OS=alpine:3.18-stable     \
+    BUILD_OS=alpine:3.18            \
     BUILD_LABEL=notset
-
-    && echo " ---> Version:         ${BUILD_PKP_VERSION}"                       \
-    && echo " ---> Web server:      ${BUILD_WEB_SERVER}"                        \
-    && echo "==============================================================="
 
 # GET PKP CODE
 FROM ${BUILD_OS} as pkp_code
