@@ -78,20 +78,23 @@ ENV PKP_TOOL="${BUILD_PKP_TOOL:-ojs}"                       \
 
 
 # Basic packages (todo: Remove what don't need to be installed)
-ENV PACKAGES        \
-    cron            \
-    rsyslog         \
-    apache2-utils   \
-    ca-certificates \
+ENV PACKAGES          \
+    cron              \
+    rsyslog           \
+    apache2-utils     \
+    ca-certificates   \
     vim
 
 # DEV packages are not required in production images.
-ENV PACKAGES_DEV    \
-    zlib1g-dev      \
-    libmcrypt-dev   \
-    libonig-dev     \
-    libpng-dev      \
-    libxslt-dev     \
+ENV PACKAGES_DEV      \
+    zlib1g-dev        \
+    libmcrypt-dev     \
+    libonig-dev       \
+    libpng-dev        \
+    libxslt-dev       \
+    libpng-dev        \
+    libfreetype6-dev  \
+    libjpeg62-turbo-dev \
     libzip-dev
 
 # PHP extensions
