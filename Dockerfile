@@ -1,13 +1,13 @@
 # Default context
 ARG BUILD_PKP_TOOL=omp              \
-    BUILD_PKP_VERSION=3.3.0-16      \
+    BUILD_PKP_VERSION=3.3.0-21      \
     BUILD_PKP_APP_PATH=/app         \
     BUILD_WEB_SERVER=php:8.1-apache \
     BUILD_OS=alpine:3.18            \
     BUILD_LABEL=notset
 
 # GET PKP CODE
-FROM ${BUILD_OS} as pkp_code
+FROM ${BUILD_OS} AS pkp_code
 
 # Context
 ARG BUILD_PKP_TOOL                  \
@@ -78,37 +78,13 @@ ENV PKP_TOOL="${BUILD_PKP_TOOL:-ojs}"                       \
 
 
 # Basic packages (todo: Remove what don't need to be installed)
-ENV PACKAGES          \
-    cron              \
-    rsyslog           \
-    apache2-utils     \
-    ca-certificates   \
-    vim
+ENV PACKAGES="cron rsyslog apache2-utils ca-certificates vim"
 
 # DEV packages are not required in production images.
-ENV PACKAGES_DEV      \
-    zlib1g-dev        \
-    libmcrypt-dev     \
-    libonig-dev       \
-    libpng-dev        \
-    libxslt-dev       \
-    libpng-dev        \
-    libfreetype6-dev  \
-    libjpeg62-turbo-dev \
-    libzip-dev
+ENV PACKAGES_DEV="zlib1g-dev libmcrypt-dev libonig-dev libpng-dev libxslt-dev libpng-dev libfreetype6-dev libjpeg62-turbo-dev libzip-dev"
 
 # PHP extensions
-ENV PHP_EXTENSIONS  \
-    gd \
-    gettext \
-    iconv \
-    intl \
-    mbstring \
-    mysqli \
-    pdo_mysql \
-    xml \
-    xsl \
-    zip
+ENV PHP_EXTENSIONS="gd gettext iconv intl mbstring mysqli pdo_mysql xml xsl zip"
 
 # Extension names as required by docker-php-ext-* helpers. Possible values are:
 # bcmath bz2 calendar ctype curl dba dom enchant exif ffi fileinfo filter ftp gd gettext gmp hash iconv imap intl json ldap mbstring mysqli oci8 odbc opcache pcntl pdo pdo_dblib pdo_firebird pdo_mysql pdo_oci pdo_odbc pdo_pgsql pdo_sqlite pgsql phar posix pspell readline reflection session shmop simplexml snmp soap sockets sodium spl standard sysvmsg sysvsem sysvshm tidy tokenizer xml xmlreader xmlwriter xsl zend_test zip
@@ -138,6 +114,12 @@ COPY --from=pkp_code "${BUILD_PKP_APP_PATH}" .
 
 # Create directories
 RUN mkdir -p /etc/ssl/apache2 "${WWW_PATH_ROOT}/files" /run/apache2
+# Make php/conf.d indpendent of the php version:
+RUN PHP_INI_DIR=$(php --ini | grep "Configuration File (php.ini) Path" | cut -d: -f2 | xargs) \
+ && mkdir -p "$PHP_INI_DIR/conf.d" \
+ && mkdir -p "/etc/php" \
+ && ln -sfn "$PHP_INI_DIR" /etc/php/conf.d
+
 RUN echo "PKP_CONF: ${PKP_CONF}"
 RUN cp -a config.TEMPLATE.inc.php "${WWW_PATH_ROOT}/html/${PKP_CONF}" 
 RUN chown -R ${WWW_USER}:${WWW_USER} "${WWW_PATH_ROOT}"

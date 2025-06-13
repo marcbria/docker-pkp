@@ -1,6 +1,6 @@
 # PKP Tool:
 PKP_TOOL="ojs"
-PKP_VERSION="3.3.0-15"
+PKP_VERSION="3.3.0-21"
 
 # Set your journal Tag:
 COMPOSE_PROJECT_NAME=demo
@@ -8,7 +8,7 @@ PROJECT_DOMAIN=demo.localhost
 SERVERNAME=${PROJECT_DOMAIN}
 
 # Web Server:
-PHP_INI_DIR="/etc/php/8.0" 
+# PHP_INI_DIR="/etc/php/8.1" 
 HTTP_PORT=8081
 HTTPS_PORT=8444
 HTTPS="on"

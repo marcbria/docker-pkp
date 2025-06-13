@@ -3,7 +3,7 @@
 
 services:
   db:
-    image: mariadb:10.2
+    image: mariadb:11.8
     env_file:
       - .env
     container_name: "pkp_db_${COMPOSE_PROJECT_NAME:-demo}"
@@ -19,10 +19,10 @@ services:
 #      - ./volumes/migration:/docker-entrypoint-initdb.d
     networks:
       - inside
-    restart: always
+    restart: unless-stopped
 
   app:
-    image: local/${PKP_TOOL}:3_3_0-16
+    image: local/${PKP_TOOL:-ojs}:${PKP_VERSION:-3_3_0-21}
     build: 
       context: .
       dockerfile: Dockerfile
@@ -48,7 +48,7 @@ services:
       - inside
     depends_on:
       - db
-    restart: always
+    restart: unless-stopped
 
 networks:
   inside:
