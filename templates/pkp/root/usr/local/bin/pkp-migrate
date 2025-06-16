@@ -13,7 +13,7 @@ if [ -d "/var/www/files/private" && -d \
 
 	echo "Check former information..."
 	read -r -p "Are you sure you want to UPGRADE? [y/N] " response
-	if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
+	if echo "$response" | grep -Eq '^[yY]([eE][sS])?$'; then
 	then
 		echo "[PKP Upgrade] Upgrading..."
 		php /var/www/html/tools/upgrade.php check

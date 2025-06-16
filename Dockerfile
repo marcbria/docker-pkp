@@ -46,16 +46,18 @@ FROM ${BUILD_WEB_SERVER}
 # - Redirect log output to stdout & FILE.
 
 # Context
-ARG BUILD_PKP_TOOL                              \
-    BUILD_PKP_VERSION                           \
-    BUILD_LABEL                                 \
-    BUILD_PKP_APP_PATH
+ARG BUILD_PKP_TOOL				\
+    BUILD_PKP_VERSION				\
+    BUILD_PKP_APP_PATH				\
+    BUILD_WEB_SERVER				\
+    BUILD_LABEL
+
 
 LABEL maintainer="Public Knowledge Project <marc.bria@uab.es>"
 LABEL org.opencontainers.image.vendor="Public Knowledge Project"
 LABEL org.opencontainers.image.title="PKP ${BUILD_PKP_TOOL} Web Application"
 LABEL org.opencontainers.image.description="Runs a ${BUILD_PKP_TOOL} application over ${BUILD_WEB_SERVER}-${BUILD_OS}."
-LABEL build_version="${BUILD_PKP_TOOL} ${BUILD_PKP_VERSION} - Build-date: ${BUILD_LABEL}"
+LABEL build_version="${BUILD_PKP_TOOL}_${BUILD_PKP_VERSION}_${BUILD_LABEL}"
 
 # ARGs only work during building time, so they need to be exported to ENVs:
 ENV PKP_TOOL="${BUILD_PKP_TOOL:-ojs}"                       \
@@ -70,7 +72,7 @@ ENV PKP_TOOL="${BUILD_PKP_TOOL:-ojs}"                       \
     PKP_DB_USER="${MYSQL_USER:-pkp}"                        \
     PKP_DB_PASSWORD="${MYSQL_PASSWORD:-changeMe}"           \
     PKP_DB_NAME="${MYSQL_DATABASE:-pkp}"                    \
-    PKP_WEB_CONF="/etc/apache2/conf.d/pkp.conf" \
+    PKP_WEB_CONF="/etc/apache2/conf-enabled/pkp.conf"       \
     PKP_CONF="config.inc.php"                               \
     PKP_CMD="/usr/local/bin/pkp-start"
 
@@ -112,11 +114,14 @@ COPY --from=pkp_code "${BUILD_PKP_APP_PATH}" .
 
 # Create directories
 RUN mkdir -p /etc/ssl/apache2 "${WWW_PATH_ROOT}/files" /run/apache2
-# Make php/conf.d indpendent of the php version:
-RUN PHP_INI_DIR=$(php --ini | grep "Configuration File (php.ini) Path" | cut -d: -f2 | xargs) \
+
+# Make php's etc indpendent of the php versio:
+RUN PHP_INI_DIR=$(php --ini | grep "Configuration File (php.ini) Path" | cut -d: -f2 | xargs) 
+
 # Redirect logs to stdout
 RUN echo "log_errors = On" >> $PHP_INI_DIR/conf.d/log-errors.ini \
     && echo "error_log = /dev/stderr" >> $PHP_INI_DIR/conf.d/log-errors.ini
+
 # PKP-app config
 RUN echo "PKP_CONF: ${PKP_CONF}"
 RUN cp -a config.TEMPLATE.inc.php "${WWW_PATH_ROOT}/html/${PKP_CONF}" 
@@ -141,11 +146,16 @@ RUN apt-get clean autoclean \
 # 	&& find . -name "test" -exec rm -Rf '{}' \; \
 # 	&& find . \( -name .gitignore -o -name .gitmodules -o -name .keepme \) -exec rm -Rf '{}' \;
 
-COPY "templates/common/$BUILD_PKP_TOOL/root/" /
+COPY "templates/pkp/root/" /
+COPY "volumes/config/apache.pkp.conf" "${PKP_WEB_CONF}"
 
-RUN echo "${BUILD_PKP_TOOL}-${BUILD_PKP_VERSION} over $BUILD_WEB_SERVER on $BUILD_OS [build:" $(date "+%Y%m%d-%H%M%S") "]" > "${WWW_PATH_ROOT}/container.version" \
-    && rm -f "${BUILD_PKP_TOOL}-${BUILD_PKP_VERSION}.tar.gz" \
-    && cat "${WWW_PATH_ROOT}/container.version"
+#RUN echo "${BUILD_PKP_TOOL}-${BUILD_PKP_VERSION} over $BUILD_WEB_SERVER on $(cat /etc/issue) [build:" $(date "+%Y%m%d-%H%M%S") "]" > "${WWW_PATH_ROOT}/container.version" \
+RUN bash -c '\
+    . /etc/os-release && \
+    echo "${BUILD_PKP_TOOL}-${BUILD_PKP_VERSION} over ${BUILD_WEB_SERVER} on ${ID}-${VERSION_ID} [build: $(date +%Y%m%d-%H%M%S)]" \
+    > "${WWW_PATH_ROOT}/container.version"' && \
+    rm -f "${BUILD_PKP_TOOL}-${BUILD_PKP_VERSION}.tar.gz" && \
+    cat "${WWW_PATH_ROOT}/container.version"
 
 EXPOSE 80 
 EXPOSE 443

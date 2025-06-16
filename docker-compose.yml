@@ -22,7 +22,8 @@ services:
     restart: unless-stopped
 
   app:
-    image: local/${PKP_TOOL:-ojs}:${PKP_VERSION:-3_3_0-21}
+    # image: local/omp:3.3.0-21-php81
+    image: local/${PKP_TOOL:-ojs}:${PKP_VERSION:-3_3_0-21-php81-mbr}
     build: 
       context: .
       dockerfile: Dockerfile
@@ -41,7 +42,7 @@ services:
 #      - ./volumes/logs/app:/var/log/apache2
 #      # WARNING: You can only enable file-volumes if file exists in the container.
 #      - ./volumes/config/pkp.config.inc.php:/var/www/html/config.inc.php
-      - ./volumes/config/apache.htaccess:/var/www/html/.htaccess
+#      - ./volumes/config/apache.htaccess:/var/www/html/.htaccess
       - ./volumes/config/php.custom.ini:/usr/local/etc/php/conf.d/custom.ini
 
     networks:
