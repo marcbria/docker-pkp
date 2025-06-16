@@ -1,4 +1,4 @@
 #!/bin/sh
 
-echo "[OJS runScheduledTasks] running..."
+echo "[PKP runScheduledTasks] running..."
 php /var/www/html/tools/runScheduledTasks.php

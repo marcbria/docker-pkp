@@ -1,7 +1,7 @@
 #!/bin/sh
 
-echo "[OJS Migrate] Changing to installed off"
-sed -i '/^installed/c\installed = Off' ${OJS_CONF}
+echo "[PKP Migrate] Changing to installed off"
+sed -i '/^installed/c\installed = Off' ${PKP_CONF}
 
 echo "Checking migration folders and files..."
 if [ -d "/var/www/files/migration/private" && -d \
@@ -15,19 +15,19 @@ if [ -d "/var/www/files/migration/private" && -d \
 	read -r -p "Are you sure you want to UPGRADE? [y/N] " response
 	if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
 	then
-		echo "[OJS Upgrade] Upgrading..."
+		echo "[PKP Upgrade] Upgrading..."
 		php /var/www/html/tools/upgrade.php check
 
-		echo "[OJS Upgrade] Changing to installed on"
-		sed -i '/^installed/c\installed = On' ${OJS_CONF}
+		echo "[PKP Upgrade] Changing to installed on"
+		sed -i '/^installed/c\installed = On' ${PKP_CONF}
 
-		echo "[OJS Upgrade] Upgrade is done, please check the log and restart the container."
+		echo "[PKP Upgrade] Upgrade is done, please check the log and restart the container."
 	else
 		echo "UPGRADE canceled -> Recovering former state."
 		echo "Changing to installed on"
-		sed -i '/^installed/c\installed = On' ${OJS_CONF}
+		sed -i '/^installed/c\installed = On' ${PKP_CONF}
 
-		echo "[OJS Upgrade] Upgrade was cancelled."
+		echo "[PKP Upgrade] Upgrade was cancelled."
 	fi
 else
 	echo "Migration folders are missing..."
@@ -35,5 +35,5 @@ else
 	echo "- ./volumes/private/migration/dump.sql: A mysqldump of your database (with utf8 encoding)."
 	echo "- ./volumes/private/migration/public: A copy of your public folder (with all the files)."
 	echo "- ./volumes/private/migration/private: A copy of your private folder (with the public files)."
-	echo "If the folders and files exist, check if the private volume is uncommented in your docker-cojsose.yml"
+	echo "If the folders and files exist, check if the private volume is uncommented in your docker-compose.yml"
 fi

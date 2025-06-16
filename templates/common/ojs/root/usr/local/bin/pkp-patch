@@ -3,7 +3,7 @@
 WEB_ROOT_PATH="/var/www"
 PATCH_LIST_FILE="${WEB_ROOT_PATH}/files/patch.list"
 
-# Gets the commit from the url, takes it as a patch and applies is the omp root folder.
+# Gets the commit from the url, takes it as a patch and applies is the pkp's root folder.
 # $1: The full url of a gitHub/gitLab commit.
 applyPatch() {
     cd "${WEB_ROOT_PATH}/html"
@@ -15,12 +15,12 @@ applyPatch() {
 }
 
 main() {
-    echo "[OMP Patch] Apply a patch to your OMP..."
+    echo "[PKP Patch] Apply a patch to your PKP app..."
     
     if [ ${1} ]; then
         echo "Patching a single commit."
         applyPatch ${1}
-        echo "[OMP Patch] DONE!"
+        echo "[PKP Patch] DONE!"
     else
         if [ -f "${PATCH_LIST_FILE}" ]; then
     
@@ -33,7 +33,7 @@ main() {
                 applyPatch $patchItem
             done < $PATCH_LIST_FILE
     
-            echo "[OMP Patch] DONE!"
+            echo "[PKP Patch] DONE!"
         else 
     	echo "No parameters and no patch.list file found."
         fi

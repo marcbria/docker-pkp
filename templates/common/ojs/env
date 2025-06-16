@@ -1,11 +1,7 @@
-# PKP Tool:
-PKP_TOOL="ojs"
-PKP_VERSION="3.3.0-21"
-
 # Set your journal Tag:
-COMPOSE_PROJECT_NAME=demo
-PROJECT_DOMAIN=demo.localhost
-SERVERNAME=${PROJECT_DOMAIN}
+COMPOSE_PROJECT_NAME=journal
+PROJECT_DOMAIN=journal.localhost
+SERVERNAME=$PROJECT_DOMAIN
 
 # Web Server:
 # PHP_INI_DIR="/etc/php/8.1" 
@@ -17,15 +13,18 @@ WEB_PATH="/var/www/html"
 # Database:
 # MYSQL_VERSION=10.3
 MYSQL_ROOT_PASSWORD=changeRootPlease
-MYSQL_USER=${PKP_TOOL}
+MYSQL_USER=pkp
 MYSQL_PASSWORD=changeMePlease
-MYSQL_DATABASE=${PKP_TOOL}
+MYSQL_DATABASE=pkp
 
-OMP_CLI_INSTALL=0
-OMP_DB_HOST=db
-OMP_DB_DRIVER=mysqli
-OMP_DB_USER=${MYSQL_USER}
-OMP_DB_PASSWORD=changeMePlease
-OMP_DB_NAME=${PKP_TOOL}
-OMP_WEB_CONF="/etc/apache2/conf.d/$PKP_TOOL.conf"
-OMP_CONF="/var/www/html/config.inc.php"
+# PKP Tool:
+PKP_TOOL="ojs"
+PKP_VERSION="${PKP_VERSION:-3.3.0-21}"
+PKP_CLI_INSTALL=0
+PKP_DB_HOST=db
+PKP_DB_DRIVER=mysqli
+PKP_DB_USER=pkp
+PKP_DB_PASSWORD=changeMePlease
+PKP_DB_NAME=pkp
+PKP_WEB_CONF="/etc/apache2/conf.d/pkp.conf"
+PKP_CONF="/var/www/html/config.inc.php"

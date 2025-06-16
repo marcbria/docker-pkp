@@ -1,16 +1,16 @@
 #!/bin/sh
 
-ojs-pre-start
+pkp-pre-start
 
 # If is not running, start the cron service in the background.
 # /usr/sbin/cron -f &
-# echo "----------> [OJS Start] Started cron..."
+# echo "----------> [PKP Start] Started cron..."
 
 # while :; do echo 'Hit CTRL+C'; sleep 5; done
 
 # Run the apache process in the foreground with the wrapper provided by the php-apache image.
 /usr/local/bin/apache2-foreground
-echo "--> [OJS Start] Started apache..."
+echo "--> [PKP Start] Started apache..."
 
 # Apache logs will be redirected to the main docker container process's stdout, so # that it will show up in the container logs
 ##### ln -sf /dev/stderr /var/log/apache2/error.log
@@ -26,7 +26,7 @@ echo "--> [OJS Start] Started apache..."
 # ln -sf /dev/stdout /var/log/apache2/ssl_access.log \
 #     && ln -sf /dev/stderr /var/log/apache2/ssl_error.log
 
-if [ "${OJS_CLI_INSTALL}" = "1" ] &&
-    grep -q 'installed = Off' "${OJS_CONF}" ; then
-    /usr/local/bin/ojs-cli-install
+if [ "${PKP_CLI_INSTALL}" = "1" ] &&
+    grep -q 'installed = Off' "${PKP_CONF}" ; then
+    /usr/local/bin/pkp-cli-install
 fi
