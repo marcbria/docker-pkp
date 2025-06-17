@@ -1,175 +1,199 @@
-# Default context
-ARG BUILD_PKP_TOOL=ojs              \
-    BUILD_PKP_VERSION=3.3.0-21      \
-    BUILD_PKP_APP_PATH=/app         \
-    BUILD_WEB_SERVER=php:8.1-apache \
-    BUILD_OS=alpine:3.18            \
-    BUILD_LABEL=notset
+# Default build arguments (modify .env instead when "docker compose build")
+ARG BUILD_PKP_TOOL=ojs
+ARG BUILD_PKP_VERSION=3_3_0-21
+ARG BUILD_PKP_APP_OS=alpine:3.22
+ARG BUILD_PKP_APP_PATH=/app
+ARG BUILD_WEB_SERVER=php:8.3-apache
+ARG BUILD_LABEL=notset
 
-# GET PKP CODE
-FROM ${BUILD_OS} AS pkp_code
 
-# Context
-ARG BUILD_PKP_TOOL                  \
-    BUILD_PKP_VERSION               \
+# Stage 1: Download PKP source code from released tarball.
+FROM ${BUILD_PKP_APP_OS} AS pkp_code
+
+ARG BUILD_PKP_TOOL	\
+    BUILD_PKP_VERSION	\
+    BUILD_PKP_APP_OS	\
     BUILD_PKP_APP_PATH
 
-RUN apk add --update --no-cache curl tar \
-    && mkdir "${BUILD_PKP_APP_PATH}" 
+RUN apk add --no-cache curl tar && \
+    mkdir -p "${BUILD_PKP_APP_PATH}" && \
+    cd "${BUILD_PKP_APP_PATH}" && \
+    pkpVersion="${BUILD_PKP_VERSION//_/.}" && \
+    curl -sSL -O "https://pkp.sfu.ca/${BUILD_PKP_TOOL}/download/${BUILD_PKP_TOOL}-${pkpVersion}.tar.gz" && \
+    tar --strip-components=1 -xzf "${BUILD_PKP_TOOL}-${pkpVersion}.tar.gz"
 
-WORKDIR "/${BUILD_PKP_APP_PATH}"
 
-# ADD is supossed to download, extract and remove, but there is an issue with some docker
-# versions so, for compatibility, doing it manually: https://github.com/moby/moby/issues/33849 
-# ADD "https://pkp.sfu.ca/$BUILD_PKP_TOOL/download/$BUILD_PKP_TOOL-$BUILD_PKP_VERSION.tar.gz" "$BUILD_PKP_APP_PATH"
+# Stage 2: Build PHP extensions and dependencies
+FROM ${BUILD_WEB_SERVER} AS pkp_build
 
-RUN curl -Ss -O "https://pkp.sfu.ca/${BUILD_PKP_TOOL}/download/${BUILD_PKP_TOOL}-${BUILD_PKP_VERSION}.tar.gz" \
-    && tar --strip-components=1 -xvzf "${BUILD_PKP_TOOL}-${BUILD_PKP_VERSION}.tar.gz" -C "${BUILD_PKP_APP_PATH}" > /tmp/untar.lst
+# Packages needed to build PHP extensions
+ENV PKP_DEPS="\
+    # Basic tools
+    curl \
+    unzip \
+    ca-certificates \
+    build-essential \
+    
+    # PHP extension development libraries
+    libzip-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libwebp-dev \
+    libonig-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    libfreetype6-dev \
+    
+    # Modern image formats support
+    libavif-dev \
+    
+    # Graphics/X11 support
+    libxpm-dev \
+    libfontconfig-dev \
 
-RUN echo    "===============================================================" \
-    && echo " ---> PKP application:  ${PKP_TOOL}"                             \
-    && echo " ---> Version:          ${BUILD_PKP_VERSION}"                    \
-    && echo " ---> Web Server:       ${BUILD_WEB_SERVER}"                     \
-    && echo " ---> Operating system: ${BUILD_OS}"                             \
-    && echo "==============================================================="
+    # PostgreSQL development
+    libpq-dev"
 
-# GET & SET THE LAMP
+ENV PHP_EXTENSIONS="\
+    # Image processing
+    gd \
+    
+    # Internationalization
+    gettext \
+    intl \
+    
+    # String handling
+    mbstring \
+
+    # Database connectivity - MySQL/MariaDB
+    mysqli \
+    pdo_mysql \
+    
+    # Database connectivity - PostgreSQL
+    pgsql \
+    pdo_pgsql \
+    
+    # XML processing
+    xml \
+    xsl \
+    
+    # Compression
+    zip"
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends $PKP_DEPS && \
+    \
+    curl -sSLf https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions \
+    -o /usr/local/bin/install-php-extensions && \
+    chmod +x /usr/local/bin/install-php-extensions && \
+    install-php-extensions $PHP_EXTENSIONS && \
+    \
+    apt-get purge -y --auto-remove build-essential && \
+    rm -rf /var/lib/apt/lists/*
+
+
+# Stage 3: Final lightweight image
 FROM ${BUILD_WEB_SERVER}
 
-# TODO:
-# - Move to debian-slim (test php plugins)
-# - Concatenate calls to reduce the layers
-# - Replace with PKP_variables when possible
-# - Remove "vim" in production image
-# - Ensure all required packages and php extensions
-# - Test with OJS, OMP and OPS.
-# - Redirect log output to stdout & FILE.
-
-# Context
-ARG BUILD_PKP_TOOL				\
-    BUILD_PKP_VERSION				\
-    BUILD_PKP_APP_PATH				\
-    BUILD_WEB_SERVER				\
+ARG BUILD_PKP_TOOL \
+    BUILD_PKP_VERSION \
+    BUILD_PKP_APP_PATH \
+    BUILD_WEB_SERVER \
     BUILD_LABEL
-
 
 LABEL maintainer="Public Knowledge Project <marc.bria@uab.es>"
 LABEL org.opencontainers.image.vendor="Public Knowledge Project"
 LABEL org.opencontainers.image.title="PKP ${BUILD_PKP_TOOL} Web Application"
-LABEL org.opencontainers.image.description="Runs a ${BUILD_PKP_TOOL} application over ${BUILD_WEB_SERVER}-${BUILD_OS}."
-LABEL build_version="${BUILD_PKP_TOOL}_${BUILD_PKP_VERSION}_${BUILD_LABEL}"
+LABEL org.opencontainers.image.description="Runs a ${BUILD_PKP_TOOL} application over ${BUILD_WEB_SERVER}."
+LABEL build_version="${BUILD_PKP_TOOL}-${BUILD_PKP_VERSION}#${BUILD_LABEL}"
 
-# ARGs only work during building time, so they need to be exported to ENVs:
-ENV PKP_TOOL="${BUILD_PKP_TOOL:-ojs}"                       \
-    PKP_VERSION="${BUILD_PKP_VERSION:-3.3.0-21}"            \
-    SERVERNAME="localhost"                                  \
-    WWW_USER="www-data"                                     \
-    WWW_PATH_CONF="/etc/apache2/apache2.conf"               \
-    WWW_PATH_ROOT="/var/www"                                \
-    HTTPS="on"                                              \
-    PKP_CLI_INSTALL="0"                                     \
-    PKP_DB_HOST="localhost"                                 \
-    PKP_DB_USER="${MYSQL_USER:-pkp}"                        \
-    PKP_DB_PASSWORD="${MYSQL_PASSWORD:-changeMe}"           \
-    PKP_DB_NAME="${MYSQL_DATABASE:-pkp}"                    \
-    PKP_WEB_CONF="/etc/apache2/conf-enabled/pkp.conf"       \
-    PKP_CONF="config.inc.php"                               \
+# Environment variables
+ENV SERVERNAME="localhost" \
+    WWW_USER="www-data" \
+    WWW_PATH_CONF="/etc/apache2/apache2.conf" \
+    WWW_PATH_ROOT="/var/www" \
+    HTTPS="on" \
+    PKP_TOOL="${BUILD_PKP_TOOL}" \
+    PKP_VERSION="${BUILD_PKP_VERSION}" \
+    PKP_CLI_INSTALL="0" \
+    PKP_DB_HOST="${PKP_DB_HOST:-db}" \
+    PKP_DB_NAME="${PKP_DB_NAME:-pkp}" \
+    PKP_DB_USER="${PKP_DB_USER:-pkp}" \
+    PKP_DB_PASSWORD="${PKP_DB_PASSWORD:-changeMePlease}" \
+    PKP_WEB_CONF="/etc/apache2/conf-enabled/pkp.conf" \
+    PKP_CONF="config.inc.php" \
     PKP_CMD="/usr/local/bin/pkp-start"
 
+ENV PKP_RUNTIME_LIBS="\
+    # Core libraries
+    libxml2 \
+    libxslt1.1 \
+    libicu72 \
+    libzip4 \
+    
+    # Image processing
+    libjpeg62-turbo \
+    libpng16-16 \
+    libfreetype6 \
+    libonig5 \
+    libavif15 \
+    libwebp7 \
+    
+    # Graphics/X11 support
+    libxpm4 \
+    libfontconfig1 \
+    libx11-6 \
 
-# Basic packages (todo: Remove what don't need to be installed)
-ENV PACKAGES="cron rsyslog apache2-utils ca-certificates vim"
+    # PostgreSQL runtime
+    libpq5"
 
-# DEV packages are not required in production images.
-ENV PACKAGES_DEV="zlib1g-dev libmcrypt-dev libonig-dev libpng-dev libxslt-dev libpng-dev libfreetype6-dev libjpeg62-turbo-dev libzip-dev"
+ENV PKP_APPS="cron"
 
-# PHP extensions
-ENV PHP_EXTENSIONS="gd gettext iconv intl mbstring mysqli pdo_mysql xml xsl zip"
+# Install required apps and runtime libraries
+RUN apt-get update && \
+    apt-get install -y $PKP_APPS $PKP_RUNTIME_LIBS && \
+    rm -rf /var/lib/apt/lists/*
 
-# Extension names as required by docker-php-ext-* helpers. Possible values are:
-# bcmath bz2 calendar ctype curl dba dom enchant exif ffi fileinfo filter ftp gd gettext gmp hash iconv imap intl json ldap mbstring mysqli oci8 odbc opcache pcntl pdo pdo_dblib pdo_firebird pdo_mysql pdo_oci pdo_odbc pdo_pgsql pdo_sqlite pgsql phar posix pspell readline reflection session shmop simplexml snmp soap sockets sodium spl standard sysvmsg sysvsem sysvshm tidy tokenizer xml xmlreader xmlwriter xsl zend_test zip
+# Copy PHP extensions and configs from build stage
+COPY --from=pkp_build /usr/local/lib/php/extensions /usr/local/lib/php/extensions
+COPY --from=pkp_build /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
+COPY --from=pkp_build /usr/local/bin/install-php-extensions /usr/local/bin/install-php-extensions
 
-
+# Set working directory
 WORKDIR ${WWW_PATH_ROOT}/html
 
-# For Debian:
-RUN apt-get update && apt-get install -y ${PACKAGES} ${PACKAGES_DEV}
-
-# By default GD don't include jpeg and freetype support:
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg
-
-# Installing PHP extensions:
-RUN docker-php-ext-install -j$(nproc) ${PHP_EXTENSIONS}
-
-# Enable installed extensions:
-RUN docker-php-ext-enable ${PHP_EXTENSIONS}
-
-# Enable mod_rewrite and mod_ssl
-RUN a2enmod rewrite ssl
-
-# Building PKP-TOOL (ie: OJS):
-
-# Get the code
+# Copy source code and configuration files
 COPY --from=pkp_code "${BUILD_PKP_APP_PATH}" .
-
-# Create directories
-RUN mkdir -p /etc/ssl/apache2 "${WWW_PATH_ROOT}/files" /run/apache2
-
-# Make php's etc indpendent of the php versio:
-RUN PHP_INI_DIR=$(php --ini | grep "Configuration File (php.ini) Path" | cut -d: -f2 | xargs) 
-
-# Redirect logs to stdout
-RUN echo "log_errors = On" >> $PHP_INI_DIR/conf.d/log-errors.ini \
-    && echo "error_log = /dev/stderr" >> $PHP_INI_DIR/conf.d/log-errors.ini
-
-# PKP-app config
-RUN echo "PKP_CONF: ${PKP_CONF}"
-RUN cp -a config.TEMPLATE.inc.php "${WWW_PATH_ROOT}/html/${PKP_CONF}" 
-RUN chown -R ${WWW_USER}:${WWW_USER} "${WWW_PATH_ROOT}"
-# Prepare freefont for captcha 
-#	&& ln -s /usr/share/fonts/TTF/FreeSerif.ttf /usr/share/fonts/FreeSerif.ttf \
-
-# Prepare crontab
-RUN echo "0 * * * *   pkp-run-scheduled" | crontab - 
-# Prepare httpd.conf
-RUN sed -i -e '\#<Directory />#,\#</Directory>#d' ${WWW_PATH_CONF} 
-RUN sed -i -e "s/^ServerSignature.*/ServerSignature Off/" ${WWW_PATH_CONF} 
-# Clear the image (files to be deleted were in exclude.list but this is not required with multi-build).
-RUN rm -rf /tmp/* 
-RUN rm -rf /root/.cache/* \
-RUN apt-get clean autoclean \
-    && apt-get autoremove --yes 
-
-# # Optional: Some folders are not required (as .git .travis.yml test .gitignore .gitmodules ...)
-# 	&& find . -name ".git" -exec rm -Rf '{}' \; \
-# 	&& find . -name ".travis.yml" -exec rm -Rf '{}' \; \
-# 	&& find . -name "test" -exec rm -Rf '{}' \; \
-# 	&& find . \( -name .gitignore -o -name .gitmodules -o -name .keepme \) -exec rm -Rf '{}' \;
-
 COPY "templates/pkp/root/" /
 COPY "volumes/config/apache.pkp.conf" "${PKP_WEB_CONF}"
 
-#RUN echo "${BUILD_PKP_TOOL}-${BUILD_PKP_VERSION} over $BUILD_WEB_SERVER on $(cat /etc/issue) [build:" $(date "+%Y%m%d-%H%M%S") "]" > "${WWW_PATH_ROOT}/container.version" \
-RUN bash -c '\
+# Final configuration steps
+RUN a2enmod rewrite ssl && \
+    mkdir -p /etc/ssl/apache2 "${WWW_PATH_ROOT}/files" /run/apache2 && \
+    \
+    echo "log_errors = On" >> /usr/local/etc/php/conf.d/log-errors.ini && \
+    echo "error_log = /dev/stderr" >> /usr/local/etc/php/conf.d/log-errors.ini && \
+    \
+    cp -a config.TEMPLATE.inc.php "${PKP_CONF}" && \
+    chown -R ${WWW_USER}:${WWW_USER} "${WWW_PATH_ROOT}" && \
+    \
+    echo "0 * * * *   pkp-run-scheduled" | crontab - && \
+    \
+    sed -i -e '\#<Directory />#,\#</Directory>#d' ${WWW_PATH_CONF} && \
+    sed -i -e "s/^ServerSignature.*/ServerSignature Off/" ${WWW_PATH_CONF} && \
+    \
     . /etc/os-release && \
-    echo "${BUILD_PKP_TOOL}-${BUILD_PKP_VERSION} over ${BUILD_WEB_SERVER} on ${ID}-${VERSION_ID} [build: $(date +%Y%m%d-%H%M%S)]" \
-    > "${WWW_PATH_ROOT}/container.version"' && \
-    rm -f "${BUILD_PKP_TOOL}-${BUILD_PKP_VERSION}.tar.gz" && \
-    cat "${WWW_PATH_ROOT}/container.version"
+    echo "${PKP_TOOL}-${PKP_VERSION} with ${BUILD_WEB_SERVER} over ${ID}-${VERSION_ID} [build: $(date +%Y%m%d-%H%M%S)]" \
+        > "${WWW_PATH_ROOT}/container.version" && \
+    cat "${WWW_PATH_ROOT}/container.version" && \
+    \
+    chmod +x "${PKP_CMD}"
 
-EXPOSE 80 
+# Expose web ports and declare volumes
+EXPOSE 80
 EXPOSE 443
 
 VOLUME [ "${WWW_PATH_ROOT}/files", "${WWW_PATH_ROOT}/public" ]
 
-# RUN chmod +x "/usr/local/bin/${BUILD_PKP_TOOL}-start"
-RUN chmod +x "/usr/local/bin/pkp-start"
-
-RUN echo    "==============================================================="   \
-    && echo " ---> PKP application: ${PKP_TOOL}"                                \
-    && echo " ---> Version:         ${BUILD_PKP_VERSION}"                       \
-    && echo " ---> BUILD ID:        $(cat ${WWW_PATH_ROOT}/container.version)"  \
-    && echo " ---> Run:             ${PKP_CMD}"                                 \
-    && echo "==============================================================="
-
+# Default start command
 CMD "${PKP_CMD}"

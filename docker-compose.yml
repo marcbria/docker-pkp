@@ -3,15 +3,15 @@
 
 services:
   db:
-    image: mariadb:11.8
+    image: ${DB_VERSION:-mariadb:11.8}
     env_file:
       - .env
     container_name: "pkp_db_${COMPOSE_PROJECT_NAME:-demo}"
     environment:
-      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-pkpPwd}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-changeMePlease}"
       MYSQL_DATABASE: "${MYSQL_DATABASE:-pkp}"
       MYSQL_USER: "${MYSQL_USER:-pkp}"
-      MYSQL_PASSWORD: "${MYSQL_PASSWORD:-pkpPwd}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD:-changeMePlease}"
 #    volumes:
 #      - ./volumes/db:/var/lib/mysql
 #      - ./volumes/logs/db:/var/log/mysql
@@ -22,11 +22,16 @@ services:
     restart: unless-stopped
 
   app:
-    # image: local/omp:3.3.0-21-php81
-    image: local/${PKP_TOOL:-ojs}:${PKP_VERSION:-3_3_0-21-php81-mbr}
+    image: local/${BUILD_PKP_TOOL:-ojs}:${BUILD_PKP_VERSION:-3_3_0-20}
     build: 
       context: .
       dockerfile: Dockerfile
+      args:
+        # Modify .env to change this arguments
+        BUILD_PKP_TOOL: ${BUILD_PKP_TOOL}
+        BUILD_PKP_VERSION: ${BUILD_PKP_VERSION}
+        BUILD_PKP_APP_OS: ${BUILD_PKP_APP_OS}
+        BUILD_WEB_SERVER: ${BUILD_WEB_SERVER}
     env_file:
       - .env
     container_name: "pkp_app_${COMPOSE_PROJECT_NAME:-demo}"
