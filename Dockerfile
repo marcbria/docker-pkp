@@ -20,7 +20,8 @@ RUN apk add --no-cache curl tar && \
     cd "${BUILD_PKP_APP_PATH}" && \
     pkpVersion="${BUILD_PKP_VERSION//_/.}" && \
     curl -sSL -O "https://pkp.sfu.ca/${BUILD_PKP_TOOL}/download/${BUILD_PKP_TOOL}-${pkpVersion}.tar.gz" && \
-    tar --strip-components=1 -xzf "${BUILD_PKP_TOOL}-${pkpVersion}.tar.gz"
+    tar --strip-components=1 -xzf "${BUILD_PKP_TOOL}-${pkpVersion}.tar.gz" && \
+    rm ${BUILD_PKP_TOOL}-${pkpVersion}.tar.gz
 
 
 # Stage 2: Build PHP extensions and dependencies
