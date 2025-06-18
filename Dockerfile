@@ -78,7 +78,11 @@ ENV PHP_EXTENSIONS="\
     xsl \
     
     # Compression
-    zip"
+    zip \
+
+    # PKP 3.5
+    bcmath \
+    ftp"
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends $PKP_DEPS && \
@@ -147,7 +151,7 @@ ENV PKP_RUNTIME_LIBS="\
     # PostgreSQL runtime
     libpq5"
 
-ENV PKP_APPS="cron"
+ENV PKP_APPS="cron vim"
 
 # Install required apps and runtime libraries
 RUN apt-get update && \
