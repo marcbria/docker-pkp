@@ -152,7 +152,18 @@ ENV PKP_RUNTIME_LIBS="\
     # PostgreSQL runtime
     libpq5"
 
-ENV PKP_APPS="cron vim"
+ENV PKP_APPS="\
+    # If we like cron in the container (under discussion at #179)
+    cron \
+
+    # PDF support: pdf2text
+    poppler-utils \
+
+    # PostScript support: ps2acii
+    ghostscript \
+
+    # Word suport: antiword
+    antiword "
 
 # Install required apps and runtime libraries
 RUN apt-get update && \
